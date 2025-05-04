@@ -1,18 +1,61 @@
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { nanoid } from "nanoid";
+import css from './ContactForm.module.css';
+import { useId } from 'react';
+
 export default function ContactForm({ onAdd }) {
-    const handleSubmit = e => {
-        e.preventDefault();
-        onAdd({
-            id: Date.now(),
-            name: e.target.elements.text.value,
-            number: e.target.elements.number.value
-        });
-        e.target.reset();
-    }
+    const nameFieldId = useId();
+    const numberFieldId = useId();
+    const initialValues = { name: "", number: ""};
+    
+    const handleSubmit = (values, actions) => {
+    onAdd({
+      id: nanoid(),
+      name: values.name,
+      number: values.number,
+    });
+    actions.resetForm();
+    };
+
+    const validationSchema = Yup.object().shape({
+    name: Yup.string()
+      .min(3, 'Name must be at least 3 characters long')
+      .max(50, 'Name must be 50 characters or less')
+      .required('Required'),
+    number: Yup.string()
+      .min(3, 'Number must be at least 3 characters long')
+      .max(50, 'Number must be 50 characters or less')
+      .required('Required'),
+    });
+
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="text" name="text" />
-            <input type="tel" name="number"/>
-            <button type="submit">Add Contact!</button>
-        </form>
-    )
+        <Formik
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+        >
+            <Form className={css.container}>
+                <div className={css.form}>
+                    <label htmlFor={nameFieldId}>Name</label>
+                    <Field id={nameFieldId} name="name" required/>
+                    <ErrorMessage
+                        name="name"
+                        component="span"
+                        className={css.errorMessage} />
+                </div>
+                <div className={css.form}>
+                    <label htmlFor={numberFieldId}>Number</label>
+                    <Field id={numberFieldId} name="number" required />
+                    <ErrorMessage
+                        name="number"
+                        component="span"
+                        className={css.errorMessage} />
+                </div>
+                <button className={css.button} type="submit">
+                        Add Contact!
+                </button>
+            </Form>
+        </Formik>
+    );
 };
